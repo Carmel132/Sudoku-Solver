@@ -105,6 +105,20 @@ namespace Sudoku_Solver
         public bool CheckColumn(int c) // 1 based indexing
         {
             List<int> numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            /*int ColumnIndex = c % 3;
+            int domain = c < 3 ? 0 : c < 6 ? 1 : 2;
+
+            for (int cell = domain; cell < 3; cell += 3)
+            {
+                for (int row = 0; row < 3; row++)
+                {
+                    if (!numbers.Contains(Data[cell].Data[row][ColumnIndex].Val) && Data[cell].Data[row][ColumnIndex].Val != 0)
+                    {
+                        return false;
+                    }
+                    else { numbers.Remove(Data[cell].Data[row][ColumnIndex].Val); }
+                }
+            }*/
 
             for (int C = (int)Math.Floor( (double)(c - 1) / 3 ); C < 9; C += 3)
             {
@@ -164,6 +178,7 @@ namespace Sudoku_Solver
             // cell % 3 * 3 + 1 + val
             return (coord.Item1 % 3) * 3 + 1 + coord.Item3;
         }
+
         
         public Value this[(int, int, int) pointer]
         {

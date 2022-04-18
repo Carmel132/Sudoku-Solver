@@ -115,6 +115,7 @@ namespace Sudoku_Solver
         }
         public Board Solve()
         {
+            int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9 };
             Board temp = board.GetCopy() ; // Safety reasons
             temp.Update();
             (int, int, int) pointer = (0, 0, 0);
@@ -144,7 +145,7 @@ namespace Sudoku_Solver
                                     break;
                                 }
                                 else
-                                {
+                        {
                                     temp[pointer].Val = 0; Regress(ref pointer);
                                     break;
                                 }
@@ -164,6 +165,7 @@ namespace Sudoku_Solver
                             do { Regress(ref pointer); } while (!temp.Data[pointer.Item1].Data[pointer.Item2][pointer.Item3].access || temp[pointer].Val == 9);
                             break;
                         }
+                        else { Progress(ref pointer); }
                     }
                     
                 }
