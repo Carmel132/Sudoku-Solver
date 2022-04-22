@@ -23,9 +23,17 @@ namespace Sudoku_Solver
         {
             return val1.Val == val2.Val;
         }
+        public static bool operator ==(Value val1, int val2)
+        {
+            return val1.Val == val2;
+        }
         public static bool operator !=(Value val1, Value val2)
         {
             return val1.Val != val2.Val;
+        }
+        public static bool operator !=(Value val1, int val2)
+        {
+            return val1.Val != val2;
         }
         public static Value Int(int num)
         {
@@ -45,6 +53,7 @@ namespace Sudoku_Solver
         public void Progress(ref (int, int, int) pointer)
         {
             //Console.WriteLine("Progression");
+            if (pointer == (8, 2, 2)) {pointer = (0, 0, 0); return; } 
             if (pointer.Item3 >= 2)
             {
                 pointer.Item3 = 0;
@@ -82,8 +91,9 @@ namespace Sudoku_Solver
         }
         public void Regress(ref (int, int, int) pointer)  
         {
+            if (pointer.Equals( (0, 0, 0))) { pointer = (8, 2, 2); return;}
             //Console.WriteLine("Regression");
-            if (pointer.Item3 > 0)
+            if (pointer.Item3 < 1)
             {
                 pointer.Item3 = 2;
                 //Console.WriteLine("Pointer.Item3 = 2");
@@ -115,62 +125,58 @@ namespace Sudoku_Solver
         }
         public Board Solve()
         {
-            int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            Board temp = board.GetCopy() ; // Safety reasons
+            Board temp = board.GetCopy(); // Safety reasons
             temp.Update();
             (int, int, int) pointer = (0, 0, 0);
-            int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9 };
             while (!temp.Solved())
             {
-                //Print(temp);
-                //Console.WriteLine(temp.Solved());
-                //Console.WriteLine(temp[pointer].Val);
-                Console.WriteLine("\n" + Convert.ToString(pointer));
-                Console.Write("Works: ");
-                temp[pointer].Works.ForEach(Console.Write);
-                Console.Write("\n");
-                if (temp.Data[pointer.Item1].Data[pointer.Item2][pointer.Item3].access)
-                {
-                    
-                    Print(temp);
-                    foreach (int i in numbers)
-                    {
-                        if (temp.IsLegal(pointer.ToTuple(), Value.Int(i)) && i >= temp.Read(pointer.ToTuple()) && temp[pointer].access)
-                        {
-                            if (temp[pointer].Val == 9) 
-                            {
-                                if (temp.IsLegal(pointer.ToTuple(), Value.Int(i)))
-                                {
-                                    temp[pointer].Val = 1;
-                                    break;
-                                }
-                                else
-                        {
-                                    temp[pointer].Val = 0; Regress(ref pointer);
-                                    break;
-                                }
-                            }
-                            
-                            Console.WriteLine(temp.CheckRow(1));
-                            Console.WriteLine("Is legal: " + temp.IsLegal(pointer.ToTuple(), Value.Int(i)).ToString());
-                            temp.Write(pointer.ToTuple(), Value.Int(i));
-                            Console.WriteLine("Data[" + Convert.ToString(pointer) + "] = " + Convert.ToString(i));
-                            Progress(ref pointer);
-                            break;
-                        }
-                        else if (temp.Data[pointer.Item1].Data[pointer.Item2][pointer.Item3].Works.Count == 0)
-                        {
-                            temp.Write(pointer.ToTuple(), Value.Int(0));
-                            Console.WriteLine(pointer.ToString() + " = " + 0.ToString());
-                            do { Regress(ref pointer); } while (!temp.Data[pointer.Item1].Data[pointer.Item2][pointer.Item3].access || temp[pointer].Val == 9);
-                            break;
-                        }
-                        else { Progress(ref pointer); }
-                    }
-                    
-                }
-                else { Progress(ref pointer); }
                 temp.Update();
+                //Console.WriteLine(pointer.ToString());
+                if (temp[pointer].access)
+                {//under assumption trying to increase current pointer by 1 work value
+                    if (temp[pointer].Works.Count > 0)
+                    {
+                    //Print(temp);
+                    //Console.Write("\n" + pointer.ToString() + " Works = " );
+                    //temp[pointer].Works.ForEach(Console.Write);
+                    //Console.WriteLine();
+                        if (temp[pointer] == 0) { temp[pointer].Val = temp[pointer].Works[0];/* Console.WriteLine(pointer.ToString() + " = " + temp[pointer].Val.ToString());*/ Progress(ref pointer);}
+                        else
+                        {
+                            if ( temp[pointer] == temp[pointer].Works[ temp[pointer].Works.Count - 1 ] ) // hell (is last value of works)
+                            {
+                                temp[pointer].Val = 0;
+                                do
+                                {
+                                    temp.Update();
+                                    if (temp[pointer].access) { temp[pointer].Val = 0; /*Console.WriteLine(pointer.ToString() + " = 0"));*/}
+                                    Regress(ref pointer);
+                                    //Console.WriteLine(pointer.ToString());
+                                } 
+                                while ( temp[pointer].access == false && temp[pointer].Works.Count > 0 ); // might change > 1
+                            }
+                            else
+                            {
+                                temp[pointer].Val = temp[pointer].Works[ temp[pointer].Works.IndexOf(temp[pointer].Val) + 1 ];
+                                //Console.WriteLine(pointer.ToString() + " = " + temp[pointer].Val.ToString());
+                                Progress(ref pointer);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        temp[pointer].Val = 0;
+                        do
+                        {
+                            temp.Update();
+                            if (temp[pointer].access) { temp[pointer].Val = 0;}
+                            Regress(ref pointer);
+                            //Console.WriteLine(pointer.ToString());
+                        } 
+                        while ( temp[pointer].access == false && temp[pointer].Works.Count > 0 ); // might change > 1
+                    }
+                }
+                else { Progress(ref pointer);}
             }
             return temp;
         }
@@ -200,9 +206,10 @@ namespace Sudoku_Solver
         }
         public void Run()
         {
-            board = Solve();
-            Console.WriteLine("\n\n");
+            Console.WriteLine("Unsolved: \n");
             Print(board);
+            Console.WriteLine("\n\nSolved: \n");
+            Print(Solve());
         }
     }
 }
